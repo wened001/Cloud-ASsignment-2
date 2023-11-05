@@ -1,6 +1,8 @@
 package nuber.students;
 
 import java.util.HashMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 
 /**
@@ -18,6 +20,12 @@ public class NuberDispatch {
 	
 	private boolean logEvents = false;
 	
+	private HashMap<String, Integer> regionInfo;
+	private HashMap<String, NuberRegion> regions;
+	private BlockingQueue<Driver> idleDrivers;
+	
+	public int bookings;
+	
 	/**
 	 * Creates a new dispatch objects and instantiates the required regions and any other objects required.
 	 * It should be able to handle a variable number of regions based on the HashMap provided.
@@ -27,6 +35,13 @@ public class NuberDispatch {
 	 */
 	public NuberDispatch(HashMap<String, Integer> regionInfo, boolean logEvents)
 	{
+		this.logEvents = logEvents;
+		this.regionInfo = regionInfo;
+		idleDrivers = new ArrayBlockingQueue<Driver>(MAX_DRIVERS);
+		bookings = 0;
+		regionInfo.forEach((regionName, maxBookings) -> {
+			regions.put(regionName, new NuberRegion(this, regionName, maxBookings));
+		});
 	}
 	
 	/**
@@ -39,6 +54,13 @@ public class NuberDispatch {
 	 */
 	public boolean addDriver(Driver newDriver)
 	{
+		try {
+			idleDrivers.put(newDriver);
+			return true;
+		} catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	/**
@@ -50,6 +72,14 @@ public class NuberDispatch {
 	 */
 	public Driver getDriver()
 	{
+		try {
+			Driver newDriver = idleDrivers.take();
+			return newDriver;
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -61,9 +91,7 @@ public class NuberDispatch {
 	 * @param message The message to show
 	 */
 	public void logEvent(Booking booking, String message) {
-		
 		if (!logEvents) return;
-		
 		System.out.println(booking + ": " + message);
 		
 	}
@@ -80,6 +108,8 @@ public class NuberDispatch {
 	 * @return returns a Future<BookingResult> object
 	 */
 	public Future<BookingResult> bookPassenger(Passenger passenger, String region) {
+		NuberRegion bookingRegion = regions.get(region);
+		
 	}
 
 	/**
@@ -91,6 +121,7 @@ public class NuberDispatch {
 	 */
 	public int getBookingsAwaitingDriver()
 	{
+		return bookings;
 	}
 	
 	/**
