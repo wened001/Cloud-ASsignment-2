@@ -2,9 +2,11 @@ package nuber.students;
 
 public class Driver extends Person {
 
+	private Passenger currentPassenger;
 	
 	public Driver(String driverName, int maxSleep)
 	{
+		super(driverName, maxSleep);
 	}
 	
 	/**
@@ -16,6 +18,12 @@ public class Driver extends Person {
 	 */
 	public void pickUpPassenger(Passenger newPassenger)
 	{
+		currentPassenger = newPassenger;
+		try{
+			Thread.sleep((int)(Math.random() * maxSleep));
+		} catch (InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -25,6 +33,11 @@ public class Driver extends Person {
 	 * @throws InterruptedException
 	 */
 	public void driveToDestination() {
+		try {
+			Thread.sleep(currentPassenger.getTravelTime());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 }
